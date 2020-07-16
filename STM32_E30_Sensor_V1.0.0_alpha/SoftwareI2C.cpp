@@ -26,8 +26,9 @@
 
 #define _delay_us  100
 
-SoftwareI2C CJMCU6750;
-SoftwareI2C SHT20;
+SoftwareI2C CJMCU6750_Sensor;
+SoftwareI2C SHT20_Sensor;
+SoftwareI2C MAX44009_Sensor;
 
 /*************************************************************************************************
  * Function Name: begin

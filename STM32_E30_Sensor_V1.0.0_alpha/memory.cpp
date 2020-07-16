@@ -376,8 +376,6 @@ bool Verify_Sys_Para(void)
 	int run_mode_temp;
 	unsigned char location_flag_temp;
 
-	noInterrupts();
-
 	// position_temp = EEPROM1024.read(SYS_POSITION_HIGH_ADDR) << 8;
 	// position_temp |= EEPROM1024.read(SYS_POSITION_LOW_ADDR);
 
@@ -394,15 +392,13 @@ bool Verify_Sys_Para(void)
 
 	if (acquisition_temp != Sys_Run_Para.g_Acquisition_Cycle || transmit_temp != Sys_Run_Para.g_Transmit_Cycle || run_mode_temp != Sys_Run_Para.g_Run_Mode || location_flag_temp != Sys_Run_Para.g_Location_Flag)
 	{
-		interrupts();
-		Serial.println("校验成功 <Verify_Sys_Para>");
+		Serial.println("服务器下发参数与本设备当前保存的不一致，开始更新参数 <Verify_Sys_Para>");
 		Serial.flush();
 		return true;
 	}
 	else
 	{
-		interrupts();
-		Serial.println("校验失败 <Verify_Sys_Para>");
+		Serial.println("服务器下发参数与本设备当前保存的一致，无需更新参数 <Verify_Sys_Para>");
 		Serial.flush();
 		return false;
 	}
@@ -415,7 +411,6 @@ bool Verify_Sys_Para(void)
  */
 void Muti_Sensor_Data_Base_Init(void)
 {
-	noInterrupts();
 	unsigned long Sensor_Count = 0;
 	EDB_Status Sensor_Result;
 
@@ -436,8 +431,6 @@ void Muti_Sensor_Data_Base_Init(void)
 #if (DEVICE_V2_5 || E30_DEVICE_V1_0)
 	EP_Write_Disable();
 #endif
-
-	interrupts();
 }
 
 /*
@@ -452,8 +445,6 @@ void Read_EEPROM_Server_Param(unsigned char *sys_hostID, System_Run_Parameter *p
 		for (unsigned char i = 0; i < 4; i++)
 			sys_hostID[i] = 0;
 	}
-
-	noInterrupts();
 
 	// 传输周期
 	para->g_Transmit_Cycle = EEPROM1024.read(SYS_TRANSMIT_CYCLE_HIGH_ADDR) << 8;
@@ -472,8 +463,6 @@ void Read_EEPROM_Server_Param(unsigned char *sys_hostID, System_Run_Parameter *p
 
 	para->g_Run_Mode = EEPROM1024.read(SYS_RUN_MODE_HIGH_ADDR) << 8;
 	para->g_Run_Mode |= EEPROM1024.read(SYS_RUN_MODE_LOW_ADDR);
-
-	interrupts();
 }
 
 /*
@@ -485,8 +474,6 @@ void Save_SensorData_to_EEPROM(void)
 {
 	Serial.print("EEPROM max record: ");
 	Serial.println(EEPROM_MAX_RECORD);
-
-	noInterrupts();
 
 #if (DEVICE_V2_5 || E30_DEVICE_V1_0)
 	EP_Write_Enable();
@@ -518,7 +505,6 @@ void Save_SensorData_to_EEPROM(void)
 			Serial.println("Sensor save falied!");
 			Sys_Run_Para.g_Send_EP_Data_Flag = false;
 			EpromDb.clear();
-			interrupts();
 		}
 	}
 	//如果目前的数据笔数小于0，EEPROM异常或损坏，不能存数据到EEPROM，只能采集一笔，发送一笔。
@@ -528,8 +514,6 @@ void Save_SensorData_to_EEPROM(void)
 #if (DEVICE_V2_5 || E30_DEVICE_V1_0)
 	EP_Write_Disable();
 #endif
-
-	interrupts();
 }
 
 /*
@@ -539,10 +523,8 @@ void Save_SensorData_to_EEPROM(void)
  */
 void Save_Param_to_EEPROM(void)
 {
-	Serial.println("Begin <Save_Param_to_EEPROM>");
+	Serial.println("开始保存得到的系统参数 <Save_Param_to_EEPROM>");
 	Serial.flush();
-
-	// noInterrupts();
 
 #if (DEVICE_V2_5 || E30_DEVICE_V1_0)
 	EP_Write_Enable();
@@ -566,9 +548,7 @@ void Save_Param_to_EEPROM(void)
 	EP_Write_Disable();
 #endif
 
-	// interrupts();
-
-	Serial.println("End <Save_Param_to_EEPROM>");
+	Serial.println("保存完成 <Save_Param_to_EEPROM>");
 	Serial.flush();
 }
 
@@ -579,8 +559,6 @@ void Save_Param_to_EEPROM(void)
  */
 void Save_Sys_Current_Record(unsigned int now_record)
 {
-	// noInterrupts();
-
 #if (DEVICE_V2_5 || E30_DEVICE_V1_0)
 	EP_Write_Enable();
 #endif
@@ -591,8 +569,6 @@ void Save_Sys_Current_Record(unsigned int now_record)
 #if (DEVICE_V2_5 || E30_DEVICE_V1_0)
 	EP_Write_Disable();
 #endif
-
-	// interrupts();
 }
 
 /*
@@ -603,10 +579,8 @@ void Save_Sys_Current_Record(unsigned int now_record)
 unsigned int Read_Sys_Current_Record(void)
 {
 	unsigned int Cur_Record_Temp;
-	noInterrupts();
 	Cur_Record_Temp = EEPROM1024.read(SYS_CURRENT_RECORD_HIGH_ADDR) << 8;
 	Cur_Record_Temp |= EEPROM1024.read(SYS_CURRENT_RECORD_LOW_ADDR);
-	interrupts();
 	return Cur_Record_Temp;
 }
 

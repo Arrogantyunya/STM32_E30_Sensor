@@ -32,7 +32,7 @@
 #include <stdint.h>
 #include <math.h>
 #include <Arduino.h>
-// #include <SHT20.h>
+// #include <SHT20_Sensor.h>
 #include "SoftwareI2C.h"
 #include "Sodaq_SHT2x.h"
 
@@ -83,7 +83,9 @@ float SHT2xClass::GetTemperature(void)
     if (value == 0) {
         return -273;                    // Roughly Zero Kelvin indicates an error
     }
-    return -46.85 + 175.72 / 65536.0 * value;
+    float Tempdata = -46.85 + 175.72 / 65536.0 * value;
+    Serial.println(String("Tempdata = ") + Tempdata);
+    return Tempdata;
 }
 
 /**********************************************************
@@ -113,26 +115,26 @@ uint16_t SHT2xClass::readSensor(uint8_t command)
 {
     uint16_t result;
 
-    SHT20.beginTransmission(eSHT2xAddress);
-    SHT20.write(command);
-    SHT20.endTransmission();
+    SHT20_Sensor.beginTransmission(eSHT2xAddress);
+    SHT20_Sensor.write(command);
+    SHT20_Sensor.endTransmission();
     delay(100);
 
-    SHT20.requestFrom(eSHT2xAddress, 3);
+    SHT20_Sensor.requestFrom(eSHT2xAddress, 3);
     uint32_t timeout = millis() + 300;       // Don't hang here for more than 300ms
-    while (SHT20.available() < 3) {
+    while (SHT20_Sensor.available() < 3) {
         if ((millis() - timeout) > 0) {
             return 0;
         }
     }
 
     //Store the result
-    result = SHT20.read() << 8;
-    result += SHT20.read();
+    result = SHT20_Sensor.read() << 8;
+    result += SHT20_Sensor.read();
     result &= ~0x0003;   // clear two low bits (status bits)
 
     //Clear the final byte from the buffer
-    SHT20.read();
+    SHT20_Sensor.read();
 
     return result;
 }

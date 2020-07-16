@@ -391,7 +391,7 @@ static void Send_Air_Muti_Sensor_Data_to_Server(void)
 	memset(Data_BCD, 0x00, sizeof(Data_BCD));
 	memset(weathertr, 0x00, sizeof(weathertr));
 
-	if (Muti_Sensor_Data.Air_Lux > 200000)
+	if (Muti_Sensor_Data.Air_Lux > 400000)
 	{
 		Send_Air_Sensor_Buff[Air_Data_Length++] = 0xFF;
 		Send_Air_Sensor_Buff[Air_Data_Length++] = 0xFF;
@@ -511,34 +511,58 @@ static void Send_Air_Muti_Sensor_Data_to_Server(void)
 	NumOfDot = 2;
 	memset(Data_BCD, 0x00, sizeof(Data_BCD));
 
-	if ((Muti_Sensor_Data.GreenHouse_Temp >= 65535) && (Muti_Sensor_Data.GreenHouse_Temp_Flag != 1))
+	// if ((Muti_Sensor_Data.GreenHouse_Temp >= 65535) && (Muti_Sensor_Data.GreenHouse_Temp_Flag != 1))
+	// {
+	// 	Send_Air_Sensor_Buff[Air_Data_Length++] = 0xFF;
+	// 	Send_Air_Sensor_Buff[Air_Data_Length++] = 0xFF;
+	// }
+	// else
+	// {
+	// 	if (Muti_Sensor_Data.GreenHouse_Temp_Flag == 1)
+	// 	{
+	// 		#if TYPEA0
+	// 		Temperature = (float)(Muti_Sensor_Data.GreenHouse_Temp);
+	// 		#else
+	// 		Temperature = (float)(65536 - Muti_Sensor_Data.GreenHouse_Temp) / 10.0;
+	// 		#endif
+	// 	}
+	// 	else
+	// 	{
+	// 		#if TYPEA0
+	// 		Temperature = (float)(Muti_Sensor_Data.GreenHouse_Temp);
+	// 		#else
+	// 		Temperature = (float)(Muti_Sensor_Data.GreenHouse_Temp) / 10.0;
+	// 		#endif
+			
+	// 	}
+
+	// 	PackBCD((char *)Data_BCD, Temperature, 4, NumOfDot);
+	// 	Send_Air_Sensor_Buff[Air_Data_Length++] = Data_BCD[0];
+	// 	Send_Air_Sensor_Buff[Air_Data_Length++] = Data_BCD[1];
+	// }
+
+	if ((int)(Muti_Sensor_Data.GreenHouse_Temp) >= 65535 && (int)(Muti_Sensor_Data.GreenHouse_Temp) <= -65535)
 	{
 		Send_Air_Sensor_Buff[Air_Data_Length++] = 0xFF;
 		Send_Air_Sensor_Buff[Air_Data_Length++] = 0xFF;
 	}
 	else
 	{
-		if (Muti_Sensor_Data.GreenHouse_Temp_Flag == 1)
+		if (Muti_Sensor_Data.GreenHouse_Temp_Flag == true)
 		{
-			#if TYPEA0
-			Temperature = (float)(65536 - Muti_Sensor_Data.GreenHouse_Temp);
-			#else
-			Temperature = (float)(65536 - Muti_Sensor_Data.GreenHouse_Temp) / 10.0;
-			#endif
+			Muti_Sensor_Data.GreenHouse_Temp = -Muti_Sensor_Data.GreenHouse_Temp;
+			Serial.println(String("(true)Muti_Sensor_Data.GreenHouse_Temp = ") + Muti_Sensor_Data.GreenHouse_Temp);
+			PackBCD((char *)Data_BCD, Muti_Sensor_Data.GreenHouse_Temp, 4, NumOfDot);
+			Send_Air_Sensor_Buff[Air_Data_Length++] = Data_BCD[0];
+			Send_Air_Sensor_Buff[Air_Data_Length++] = Data_BCD[1];
 		}
 		else
 		{
-			#if TYPEA0
-			Temperature = (float)(Muti_Sensor_Data.GreenHouse_Temp);
-			#else
-			Temperature = (float)(Muti_Sensor_Data.GreenHouse_Temp) / 10.0;
-			#endif
-			
+			Serial.println(String("(false)Muti_Sensor_Data.GreenHouse_Temp = ") + Muti_Sensor_Data.GreenHouse_Temp);
+			PackBCD((char *)Data_BCD, Muti_Sensor_Data.GreenHouse_Temp, 4, NumOfDot);
+			Send_Air_Sensor_Buff[Air_Data_Length++] = Data_BCD[0];
+			Send_Air_Sensor_Buff[Air_Data_Length++] = Data_BCD[1];
 		}
-
-		PackBCD((char *)Data_BCD, Temperature, 4, NumOfDot);
-		Send_Air_Sensor_Buff[Air_Data_Length++] = Data_BCD[0];
-		Send_Air_Sensor_Buff[Air_Data_Length++] = Data_BCD[1];
 	}
 
 	if (Muti_Sensor_Data.GreenHouse_Temp_Flag == 1)
@@ -928,10 +952,8 @@ bool Send_EEPROM_Muti_Sensor_Data_to_Server(void)
 	if (NowRecord <= 0 || NowRecord > EEPROM_MAX_RECORD)
 		NowRecord = 1;
 
-	noInterrupts();
 	EpromDb.open(EEPROM_BASE_ADDR);				   //打开传感器数据基地址
 	unsigned long Remain_Record = EpromDb.count(); //得到已经存储的剩余笔数
-	interrupts();
 
 	Serial.print("SensorData Count:");
 	Serial.println(Remain_Record);
@@ -954,10 +976,8 @@ bool Send_EEPROM_Muti_Sensor_Data_to_Server(void)
 
 		if (Sys_Run_Para.g_Send_EP_Data_Flag == true)
 		{
-			noInterrupts();
 			EpromDb.open(EEPROM_BASE_ADDR);
 			EDB_Status result = EpromDb.readRec(NowRecord, EDB_REC Muti_Sensor_Data);
-			interrupts();
 		}
 
 		Serial.print("Now record count: ");
@@ -1008,8 +1028,6 @@ bool Send_EEPROM_Muti_Sensor_Data_to_Server(void)
 			break;
 	}
 
-	noInterrupts();
-
 	if (Sys_Run_Para.g_Send_EP_Data_Flag == true)
 	{
 
@@ -1033,8 +1051,7 @@ bool Send_EEPROM_Muti_Sensor_Data_to_Server(void)
 
 	Now_Time += Sys_Run_Para.g_Transmit_Cycle;
 	InRtc.setAlarmTime(Now_Time); //设置RTC闹钟
-
-	interrupts();
+	MyOLED.Display_DormancyTime(Sys_Run_Para.g_Transmit_Cycle);
 
 	NowRecord = 1;
 	Save_Sys_Current_Record(NowRecord);
@@ -1077,6 +1094,7 @@ bool Is_Apply_For_ID(void)
 	if (SysHostID[0] == 0 && SysHostID[1] == 0 && SysHostID[2] == 0 && SysHostID[3] == 0)
 	{
 		Serial.println("HostUserID is zero,requesting server provide hostUserID... <Is_Applay_For_ID>");
+		MyOLED.Display_WaitSetting();
 		unsigned char Request_ID_Frame[128];
 		unsigned char Frame_length = 0;
 		//请求服务器分配帧ID的协议帧
@@ -1154,6 +1172,7 @@ bool Is_Apply_For_ID(void)
 					{
 						Clear_HostID = false;
 						Save_ID_Flag = true;
+						MyOLED.Display_Sensor_Data();
 					}
 					else
 					{
@@ -1501,7 +1520,6 @@ bool Send_Data_To_Server(void)
 	Serial.println("发送数据至服务器 <Send_Data_To_Server>");
 	if (client.connected())
 	{
-
 		//读取EEPROM中的传感器数据和发送数据
 		if (Send_EEPROM_Muti_Sensor_Data_to_Server())
 		{

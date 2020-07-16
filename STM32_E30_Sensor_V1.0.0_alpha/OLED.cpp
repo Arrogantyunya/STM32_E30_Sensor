@@ -508,17 +508,16 @@ void OLED_Display::Clear_down_Screen(void)
 void OLED_Display::Display_Collecting(void)
 {
     Clear_down_Screen();//先清屏
-    // 显示：【开始采集传感器数据】
-	OLED_ShowChinese(32,16,1,16);
-    OLED_ShowChinese(48,16,2,16);
-	OLED_ShowChinese(64,16,3,16);
-    OLED_ShowChinese(80,16,4,16);
+    // 显示：【采集传感器 数据中】
+	OLED_ShowChinese(24,16,1,16);
+    OLED_ShowChinese(40,16,2,16);
+	OLED_ShowChinese(56,16,3,16);
+    OLED_ShowChinese(72,16,4,16);
+    OLED_ShowChinese(88,16,5,16);
 
-	OLED_ShowChinese(16,32,5,16);
-    OLED_ShowChinese(32,32,6,16);
-	OLED_ShowChinese(48,32,7,16);
-    OLED_ShowChinese(64,32,8,16);
-	OLED_ShowChinese(80,32,9,16);
+	OLED_ShowChinese(40,32,6,16);
+    OLED_ShowChinese(56,32,7,16);
+	OLED_ShowChinese(72,32,8,16);
     OLED_Refresh(); //更新显示
 }
 
@@ -526,17 +525,41 @@ void OLED_Display::Display_Collecting(void)
 void OLED_Display::Display_WaitSetting(void)
 {
     Clear_down_Screen();//先清屏
-    // 显示：【等待服务器配置参数】
-	OLED_ShowChinese(16,16,10,16);
-    OLED_ShowChinese(32,16,11,16);
-	OLED_ShowChinese(48,16,12,16);
-    OLED_ShowChinese(64,16,13,16);
-	OLED_ShowChinese(80,16,14,16);
+    // 显示：【等待服务器 配置系统参数】
+	OLED_ShowChinese(24,16,9,16);
+    OLED_ShowChinese(40,16,10,16);
+	OLED_ShowChinese(56,16,11,16);
+    OLED_ShowChinese(72,16,12,16);
+	OLED_ShowChinese(88,16,13,16);
 
-    OLED_ShowChinese(32,32,15,16);
-	OLED_ShowChinese(48,32,16,16);
-    OLED_ShowChinese(64,32,17,16);
-	OLED_ShowChinese(80,32,18,16);
+    OLED_ShowChinese(16,32,14,16);
+	OLED_ShowChinese(32,32,15,16);
+    OLED_ShowChinese(48,32,16,16);
+	OLED_ShowChinese(64,32,17,16);
+    OLED_ShowChinese(80,32,18,16);
+    OLED_ShowChinese(96,32,19,16);
+    OLED_Refresh(); //更新显示
+}
+
+//显示即将进去休眠的时间
+void OLED_Display::Display_DormancyTime(unsigned int DormancyTime)
+{
+    String Str_DormancyTime = "";  char *_DormancyTime = NULL;
+
+    Clear_down_Screen();//先清屏
+    // 显示：【休眠时间为 xxxx秒】
+    OLED_ShowChinese(24,16,20,16);
+    OLED_ShowChinese(40,16,21,16);
+	OLED_ShowChinese(56,16,22,16);
+    OLED_ShowChinese(72,16,23,16);
+	OLED_ShowChinese(88,16,24,16);
+
+    Str_DormancyTime = String(DormancyTime);
+	_DormancyTime = (char *)Str_DormancyTime.c_str();
+    OLED_ShowString(40,32,_DormancyTime,16);
+
+    OLED_ShowChinese(72,32,25,16);
+
     OLED_Refresh(); //更新显示
 }
 
@@ -589,21 +612,21 @@ void OLED_Display::Display_Sensor_Data(void)
     /* 显示温度 */
     if (Muti_Sensor_Data.GreenHouse_Temp < 100)
 	{
-		Str_OLED_Temp = String(Muti_Sensor_Data.GreenHouse_Temp) + ".0";
+		Str_OLED_Temp = String(Muti_Sensor_Data.GreenHouse_Temp);
 		_OLED_Temp = (char *)Str_OLED_Temp.c_str();
     	OLED_ShowString(0,16,_OLED_Temp,16);
 		OLED_ShowChinese(40,16,0,16);/* ℃ */
 	}
     else
     {
-        Str_OLED_Temp = String("NULL") + ".0";
+        Str_OLED_Temp = String("NULL");
 		_OLED_Temp = (char *)Str_OLED_Temp.c_str();
     	OLED_ShowString(0,16,_OLED_Temp,16);
 		OLED_ShowChinese(40,16,0,16);/* ℃ */
     }
     
     /* 显示湿度 */
-    if (Muti_Sensor_Data.GreenHouse_Humi < 100)
+    if (Muti_Sensor_Data.GreenHouse_Humi <= 100)
 	{
 		Str_OLED_Hum = String(Muti_Sensor_Data.GreenHouse_Humi) + "%RH";
 		_OLED_Hum = (char *)Str_OLED_Hum.c_str();
@@ -617,7 +640,7 @@ void OLED_Display::Display_Sensor_Data(void)
     }
 
     /* 显示光照强度 */
-	if (Muti_Sensor_Data.GreenHouse_Lux < 500000)
+	if (Muti_Sensor_Data.GreenHouse_Lux < 400000)
 	{
 		Str_OLED_Lux = String(Muti_Sensor_Data.GreenHouse_Lux) + "Lx";
 		_OLED_Lux = (char *)Str_OLED_Lux.c_str();

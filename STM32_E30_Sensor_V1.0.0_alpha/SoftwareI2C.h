@@ -76,8 +76,9 @@ public:
     uchar available(){return recv_len;}
 };
 
-extern SoftwareI2C CJMCU6750;
-extern SoftwareI2C SHT20;
+extern SoftwareI2C CJMCU6750_Sensor;
+extern SoftwareI2C SHT20_Sensor;
+extern SoftwareI2C MAX44009_Sensor;
 
 #endif
 /*********************************************************************************************************

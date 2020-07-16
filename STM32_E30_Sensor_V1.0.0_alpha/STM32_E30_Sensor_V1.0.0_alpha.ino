@@ -32,7 +32,6 @@ void setup()
 	Serial.begin(115200); //USB serial port.
 	ModBus_Serial.begin(9600);
 	GSM_Serial.begin(9600);
-	delay(3000);
 
 #if Print_test
 	/* File :D:\刘家辉\代码\STM32_12Way_Irrigation_Controller\STM32_12Way_Irrigation_ControllerV6.0.0_beta\STM32_12Way_Irrigation_ControllerV6.0.0_beta.ino */
@@ -139,7 +138,7 @@ void loop()
 	if (Send_Data_To_Server() == true)
 	{
 		Serial.println("发送数据至服务器完成，进入休眠 <Send_Data_To_Server>");
-		delay(100);
+		delay(2000);
 		SYS_Sleep();
 	}
 	else
@@ -250,7 +249,6 @@ void Time2_Handler(void)
 	if (Run_Time_Out_Sec >= 300)
 	{
 		Run_Time_Out_Sec = 0;
-		noInterrupts();
 		nvic_sys_reset();
 	}
 }

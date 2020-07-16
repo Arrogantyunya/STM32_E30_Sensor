@@ -7,13 +7,14 @@
 #include "memory.h"
 #include "data_transmit.h"
 #include "Periph.h"
+#include "MAX44009.h"
+#include "SoftwareI2C.h"
 #if USE_SHT10
   #include "SHT1x.h"
 #elif USE_SHT20
   #include "Sodaq_SHT2x.h"
-  // #include "uFire_SHT20.h"
 #endif
-#include "MAX44009/i2c_MAX44009.h"
+
 
 SENSOR_DATA Muti_Sensor_Data;
 
@@ -167,17 +168,19 @@ void Read_Soil_PH_for_Modbus(unsigned int *ph, unsigned char address)
  */
 void CJMCU6750_Init(void)
 {
+#if USE_CJMCU6750
   CJMCU6750.begin(PB15, PB14);
 
 	CJMCU6750.beginTransmission(I2C_ADDR);
 	CJMCU6750.write((IT_1 << 2) | 0x02);
 	CJMCU6750.endTransmission();
 	delay(500);
+#endif
 
-	if (max44009.initialize())  //Lux
-		Serial.println("Sensor MAX44009 found...");
-	else
-		Serial.println("Light Sensor missing !!!");
+	// if (max44009.initialize())  //Lux
+	// 	Serial.println("Sensor MAX44009 found...");
+	// else
+	// 	Serial.println("Light Sensor missing !!!");
 }
 
 /*
@@ -562,19 +565,29 @@ void Read_Temp_and_Humi_for_Modbus(float *hum, unsigned int *tep, unsigned char 
  *para    : 浮点型的湿度参数、无符号整型的温度参数、ModBus百叶箱地址
  *return  : 无
  */
-void Read_Temp_and_Humi_for_I2C(float *hum, unsigned int *tep, unsigned char *tep_flag)
+void Read_Temp_and_Humi_for_I2C(float *hum, float *tep, unsigned char *tep_flag)
 {
   #if USE_SHT10
     *tep = sht10.readTemperatureC();
     delay(100);
     *hum = sht10.readHumidity();
   #elif USE_SHT20
-    SHT20.begin(PC4,PA7);
-    // sht20.measure_all();
-    // *tep = sht20.tempC;
-    // *hum = sht20.RH;
+    SHT20_Sensor.begin(PC4,PA7);
 
-    *tep = SHT2x.GetTemperature();
+    float Temp = SHT2x.GetTemperature();
+    // Temp = -15.68;
+    *tep = Temp;
+
+    if(Temp >= 0)
+    {
+      *tep_flag = false;
+      // *tep = (Temp*100);
+    }
+    else
+    {
+      *tep_flag = true;
+      // *tep = (Temp*100);
+    }
     *hum = SHT2x.GetHumidity();
   #endif
 }
@@ -658,12 +671,11 @@ void Read_Lux_for_Modbus(unsigned long int *lux_value, unsigned char address)
  */
 void Read_Lux_and_UV_for_I2C(unsigned long int *lux_value, unsigned int *uv)
 {
-  unsigned char msb = 0, lsb = 0;
 	unsigned long mLux_value = 0;
 
-	CJMCU6750_Init();
-
-  #if LUX_UV
+  #if USE_CJMCU6750
+    unsigned char msb = 0, lsb = 0;
+  	CJMCU6750_Init();
     CJMCU6750.requestFrom(I2C_ADDR + 1, 1); //MSB
     delay(1);
 
@@ -682,12 +694,24 @@ void Read_Lux_and_UV_for_I2C(unsigned long int *lux_value, unsigned int *uv)
     Serial.println(*uv);
   #endif
 
-	max44009.getMeasurement(mLux_value);
+  MAX44009_Sensor.begin(PB9,PB8);
+  delay(500);
+  if(light.begin())
+  {
+    Serial.println("Could not find a valid MAX44009 sensor, check wiring!");
+    *lux_value = 0xFFFFFF;
+	}
+  else
+  {
+    mLux_value = light.get_lux();
+    Serial.println(String("mLux_value = ") + mLux_value);
 
-	*lux_value = mLux_value / 1000L;
-	Serial.print("light intensity value:");
-	Serial.print(*lux_value);
-	Serial.println(" Lux");
+    // *lux_value = mLux_value / 1000L;
+    *lux_value = mLux_value;
+    Serial.print("light intensity value:");
+    Serial.print(*lux_value);
+    Serial.println(" Lux");
+  }
 }
 
 /*
@@ -1282,10 +1306,8 @@ void Data_Acquisition(void)
   #endif
 
   //查看目前EP保存的数据笔数。
-  noInterrupts();
   EpromDb.open(EEPROM_BASE_ADDR);
   unsigned long Muti_Sensor_Data_Count = EpromDb.count();
-  interrupts();
 
   //如果EP中已经保存过传感器数据，且数据笔数小于能保存的最大值
   if ((Muti_Sensor_Data_Count >= 1) && (Muti_Sensor_Data_Count < EEPROM_MAX_RECORD))

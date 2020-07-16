@@ -58,6 +58,7 @@ class OLED_Display{
         void Clear_down_Screen(void);//清除下部分屏
         void Display_Collecting(void);//显示正在采集
         void Display_WaitSetting(void);//显示等待配置
+        void Display_DormancyTime(unsigned int DormancyTime);//显示即将进入休眠的时间
         void Display_Electricity(unsigned int Vol);//显示电量
         void Display_Signal(unsigned char Level = Wait_Connect);//显示信号
         void Display_Sensor_Data(void);//显示传感器数据

@@ -6,7 +6,7 @@
 
 //RS485传感器地址定义
 #if E30_DEVICE_V1_0
-  #define LUX_UV                              true
+  #define USE_CJMCU6750                       false
   #define SOIL_SENSOR_ADDR                    0x01
   #define SOIL_SENSOR_FOR_PH_ADDR             0x02
   #define I2C_ADDR                            0x38 //UV sensor
@@ -66,7 +66,7 @@ typedef struct{
   unsigned int Wind_DirCode;          //风向
   unsigned long int GreenHouse_Lux;   //大棚光照度
   unsigned long int GreenHouse_Atmos; //大棚大气压力
-  unsigned int GreenHouse_Temp;       //大棚传感器空气温度
+  float GreenHouse_Temp;              //大棚传感器空气温度
   unsigned char GreenHouse_Temp_Flag; //大棚温度正负标志位
   float GreenHouse_Humi;              //大棚传感器空气湿度
   unsigned int GreenHouse_UV;         //大棚紫外线
@@ -81,7 +81,7 @@ void Read_Cond_and_Salt(unsigned int *cond, unsigned int *sat, unsigned char add
 void Read_CO2_and_TVOC(unsigned int *co2, unsigned int *tvoc, unsigned char address);
 void Read_Soil_Temp_and_Humi(float *hum, unsigned int *tep, unsigned char *tep_flag, unsigned char address);
 void Read_Temp_and_Humi_for_Modbus(float *hum, unsigned int *tep, unsigned char *tep_flag, unsigned char address);
-void Read_Temp_and_Humi_for_I2C(float *hum, unsigned int *tep, unsigned char *tep_flag);
+void Read_Temp_and_Humi_for_I2C(float *hum, float *tep, unsigned char *tep_flag);
 void Read_Lux_for_Modbus(unsigned long int *lux_value, unsigned char address);
 void Read_Atmos(unsigned long int *atmos, unsigned char address);
 void Read_Lux_and_UV_for_I2C(unsigned long int *lux_value,unsigned int *uv);
