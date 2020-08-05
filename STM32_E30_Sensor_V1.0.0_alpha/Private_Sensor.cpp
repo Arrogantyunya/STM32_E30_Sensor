@@ -567,8 +567,22 @@ void Read_Temp_and_Humi_for_Modbus(float *hum, unsigned int *tep, unsigned char 
  */
 void Read_Temp_and_Humi_for_I2C(float *hum, float *tep, unsigned char *tep_flag)
 {
+   float Temp = 0;
+
   #if USE_SHT10
     *tep = sht10.readTemperatureC();
+    // Temp = -15.68;
+    *tep = Temp;
+    if (Temp >= 0)
+    {
+      *tep_flag = false;
+      // *tep = (Temp*100);
+    }
+    else
+    {
+      *tep_flag = true;
+      // *tep = (Temp*100);
+    }
     delay(100);
     *hum = sht10.readHumidity();
   #elif USE_SHT20
@@ -1132,7 +1146,7 @@ void Data_Acquisition(void)
     Read_Lux_and_UV_for_I2C(&Muti_Sensor_Data.GreenHouse_Lux, &Muti_Sensor_Data.GreenHouse_UV);
     delay(g_Wait_Collect_Time);
 
-    // Sensor3V3_PWR_OFF;
+    Sensor3V3_PWR_OFF;
     
     //得到当前采集时间
     UTCTime CurrentSec = 0;
